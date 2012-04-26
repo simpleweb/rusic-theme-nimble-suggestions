@@ -1,0 +1,157 @@
+{% if env == "development" %}
+  {% assign asset_url="http://rusic-theme-nimble-feedback/" %}
+{% else %}
+  {% assign asset_url="https://s3.amazonaws.com/rusic-nimble-suggestions-theme" %}
+{% endif %}
+<!DOCTYPE html>
+<!--[if lt IE 7 ]> <html class="no-js ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]>    <html class="no-js ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]>    <html class="no-js ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <title>
+      {% if idea %}
+        {{idea.title}} &middot; {{space.title}}
+      {% else %}
+        {{space.title}}
+      {% endif %}
+    </title>
+    <meta name="description" content="{{space.summary}}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if idea %}
+    <meta property="og:title" content="{{ idea.title }}"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:url" content="{{ idea.permalink }}"/>
+    <meta property="og:image" content="{{idea.images.first.square}}"/>
+    <meta property="og:site_name" content="{{ space.title }}"/>
+    <meta property="og:description" content="{{ idea.content }}" />
+    {% else %}
+    <meta property="og:title" content="{{space.title}}"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:url" content="{{ space.permalink }}"/>
+    <meta property="og:image" content="{{ space.ideas.first.images.first.square}}"/>
+    <meta property="og:site_name" content="{{space.title}}"/>
+    <meta property="og:description" content="{{space.summary}}" />
+    {% endif %}
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ asset_url }}/stylesheets/ideas.css">
+
+    <!-- Scripts -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+    {{ content_for_header }}
+    <script src="/assets/jquery.countdown.min.js"></script>
+    <script src="{{ asset_url }}/javascripts/jquery.validate.min.js"></script>
+    <script src="{{ asset_url }}/javascripts/scripts.js"></script>
+
+    <!-- Fav & touch icons -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+
+</head>
+
+<body class="{{ body_class }} {% unless current_user %}logged-out{% endunless %}">
+
+    <div class="container">
+
+        <!-- Header -->
+        <header id="mast">
+            <div id="logo"><img src="{{ asset_url }}/images/logo.png" alt="Nimble Servers Logo" width="220" /></div>
+            <h1><a href="{{space.permalink}}" title="link to {{space.title}} homepage">{{ space.title }}</a></h1>
+
+            <div class="description">
+                {{space.summary | markdown}}
+            </div>
+            {% if error %}
+            <div class="alert-message error">
+            {{ error }}
+            </div>
+            {% endif %}
+            {% if alert %}
+            <div class="alert-message warning">
+            {{ alert }}
+            </div>
+            {% endif %}
+            {% if notice %}
+            <div class="alert-message success">
+            {{ notice }}
+            </div>
+            {% endif %}
+
+            {% if space.expires_at %}
+              <div id="timer">
+                <span class="countdown-text">you have</span>
+                <time id="expires-at" datetime="{{space.expires_at}}">{{space.expires_at}}</time>
+                <span class="countdown-text">left to submit an {{theme.idea_context}}</span>
+              </div>
+            {% endif %}
+            <div id="user-actions" class="{% if current_user %}loggedin{% endif %}">
+                {% if current_user %}
+                <!-- Logged in user bar -->
+                <div id="user-bar">
+                    <img src="{{current_user.image_url}}" alt="Avatar for {{user.nickname}}" width="28" height="28" class="avatar" />
+                    <div id="welcome-message">Hey! welcome back <strong>{{current_user.nickname}}</strong> <a href="/auth/signout">(logout)</a></div>
+                </div>
+
+                <nav id="navigation">
+                    <a title="Add new {{theme.idea_context}} to {{space.title}}" class="btn primary showbtn">+ add new {{theme.idea_context}}</a>
+                </nav>
+                {% else %}
+                <!-- Logged out user bar -->
+                <div id="user-bar">
+                    <div id="welcome-message">Hey stranger! login to get involved</div>
+                </div>
+
+                <ul class="auth">
+                    <li class="twitter"><a href="/auth/twitter" class="button"><span></span>Twitter</a></li>
+                    <li class="facebook"><a href="/auth/facebook" class="button"><span></span>Facebook</a></li>
+                </ul>
+
+                <div class="alert-message tip login-prompt">
+                    <i></i><p>login with twitter or facebook to add new or {{theme.like_context}} {{theme.ideas_context}}</p>
+                </div>
+                {% endif %}
+            </div>
+        </header>
+        {% if current_user %}
+        <!-- Add new idea form -->
+        <form id="entry_form" method="post" action="{{space.permalink}}/ideas" class="clearfix" enctype="multipart/form-data">
+            <div id="new-idea">
+                <h3>Add a new {{theme.idea_context}}...</h3>
+                <fieldset>
+                    <input class="span4 required" id="idea_title" name="idea[title]" type="text" placeholder="{{theme.idea_context | capitalize}} title">
+                    <div class="input"><textarea id="idea_content" name="idea[content]" rows="3" placeholder="Your {{theme.idea_context}}" class="required"></textarea></div>
+                    <div class="checkarea"><input type="checkbox" name="idea[should_post_to_social]" value="1" checked />share this {{theme.idea_context}} to {{ current_user.provider }}?</div>
+                    <input type="submit" value="add {{theme.idea_context}}" class="btn primary submit" />
+                </fieldset>
+            </div>
+        </form>
+        {% endif %}
+        <!-- Start the content! -->
+        <div id="wrapper">
+          <!-- This will be replaced with the template content -->
+          {{ yield }}
+            <!-- Share page -->
+            <div id="share-page">
+                <a class="addthis_button_facebook_like" fb:like:layout="box_count"></a>
+                <a class="addthis_button_tweet" tw:count="vertical" tw:via="RusicHQ"></a>
+                <a class="addthis_button_google_plusone" g:plusone:size="tall"></a>
+                <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4f0c4de422db2f2f"></script>
+            </div>
+
+        </div> <!-- /wrapper -->
+
+        <!-- Footer -->
+        <footer>
+          <p>{{ space.title }} is powered by <a href="http://rusic.com">Rusic</a></p>
+        </footer>
+
+    </div>
+
+</body>
+
+</html>
